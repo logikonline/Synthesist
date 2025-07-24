@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Synthesist.pro</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
+      color: #e8eaed;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* Subtle animated background grid */
+    .background-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.03;
+      background-image: 
+        linear-gradient(rgba(0, 122, 204, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 122, 204, 0.3) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: gridMove 20s linear infinite;
+    }
+
+    @keyframes gridMove {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(50px, 50px); }
+    }
+
+    /* Floating data points */
+    .data-visualization {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .data-point {
+      position: absolute;
+      width: 3px;
+      height: 3px;
+      background: #007acc;
+      border-radius: 50%;
+      opacity: 0.4;
+      animation: dataFloat 15s infinite linear;
+    }
+
+    @keyframes dataFloat {
+      0% {
+        transform: translateY(100vh) translateX(0px);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.6;
+      }
+      90% {
+        opacity: 0.6;
+      }
+      100% {
+        transform: translateY(-100vh) translateX(100px);
+        opacity: 0;
+      }
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Header - Fixed positioning with proper centering */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: linear-gradient(135deg, rgba(18, 18, 18, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 122, 204, 0.2);
+      text-align: center;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      /* Default expanded state */
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Shrunk state */
+    header.shrunk {
+      min-height: 70px;
+      background: linear-gradient(135deg, rgba(18, 18, 18, 0.98) 0%, rgba(26, 26, 46, 0.98) 100%);
+      backdrop-filter: blur(30px);
+      border-bottom: 1px solid rgba(0, 122, 204, 0.3);
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(ellipse at center, rgba(0, 122, 204, 0.1) 0%, transparent 70%);
+      opacity: 1;
+      transition: opacity 0.4s ease;
+    }
+
+    header.shrunk::before {
+      opacity: 0;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 2;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    header h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, #007acc 0%, #4fc3f7 50%, #00d4aa 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.02em;
+      margin: 0;
+      line-height: 1.1;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    header.shrunk h1 {
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      line-height: 1;
+    }
+
+    header p {
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      max-width: 900px;
+      margin: 1.5rem auto 0;
+      opacity: 0.9;
+      font-weight: 300;
+      line-height: 1.6;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    header.shrunk p {
+      opacity: 0;
+      transform: translateY(-20px);
+      margin: 0;
+      height: 0;
+      overflow: hidden;
+    }
+
+    /* Main content spacing */
+    main {
+      margin-top: 200px;
+      transition: margin-top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    main.header-shrunk {
+      margin-top: 70px;
+    }
+
+    /* Sections */
+    section {
+      padding: 4rem 0;
+      position: relative;
+    }
+
+    section:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    h2 {
+      font-size: clamp(1.8rem, 4vw, 2.2rem);
+      margin-bottom: 2rem;
+      color: #007acc;
+      font-weight: 600;
+      position: relative;
+      display: inline-block;
+    }
+
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(90deg, #007acc, #4fc3f7);
+      border-radius: 1px;
+    }
+
+    /* Content styling */
+    .section-content {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      margin-bottom: 2rem;
+      opacity: 0.9;
+    }
+
+    /* Enhanced lists */
+    ul {
+      list-style: none;
+      margin: 2rem 0;
+    }
+
+    ul li {
+      margin-bottom: 1.2rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(0, 122, 204, 0.15);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #007acc, #4fc3f7);
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+
+    ul li:hover {
+      background: rgba(0, 122, 204, 0.08);
+      border-color: rgba(0, 122, 204, 0.3);
+      transform: translateX(8px);
+    }
+
+    ul li:hover::before {
+      transform: scaleY(1);
+    }
+
+    /* Project cards */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      margin: 3rem 0;
+    }
+
+    .project-card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 122, 204, 0.2);
+      padding: 2rem;
+      border-radius: 16px;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(0, 122, 204, 0.1), rgba(79, 195, 247, 0.05));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .project-card:hover::before {
+      opacity: 1;
+    }
+
+    .project-card:hover {
+      transform: translateY(-8px);
+      border-color: #007acc;
+      box-shadow: 0 20px 40px rgba(0, 122, 204, 0.2);
+    }
+
+    .project-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #007acc;
+      margin-bottom: 0.8rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .project-description {
+      opacity: 0.85;
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Philosophy section */
+    .philosophy-section {
+      background: linear-gradient(135deg, rgba(0, 122, 204, 0.1), rgba(26, 26, 46, 0.3));
+      margin: 4rem 0;
+      padding: 4rem 2rem;
+      border-radius: 20px;
+      text-align: center;
+      position: relative;
+      border: 1px solid rgba(0, 122, 204, 0.2);
+    }
+
+    .philosophy-text {
+      font-size: clamp(1.2rem, 3vw, 1.6rem);
+      font-style: italic;
+      color: #4fc3f7;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.6;
+      position: relative;
+    }
+
+    /* Highlight styling */
+    .highlight {
+      font-weight: 600;
+      color: #007acc;
+      background: linear-gradient(135deg, rgba(0, 122, 204, 0.1), rgba(79, 195, 247, 0.1));
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      border: 1px solid rgba(0, 122, 204, 0.2);
+    }
+
+    /* Contact section */
+    .contact-section {
+      text-align: center;
+      padding: 4rem 0;
+      background: rgba(0, 122, 204, 0.05);
+      border-radius: 16px;
+      margin-top: 3rem;
+      border: 1px solid rgba(0, 122, 204, 0.15);
+    }
+
+    .contact-cta {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 1rem 2.5rem;
+      background: linear-gradient(135deg, #007acc, #4fc3f7);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contact-cta::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .contact-cta:hover::before {
+      left: 100%;
+    }
+
+    .contact-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 122, 204, 0.3);
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1rem;
+      }
+      
+      section {
+        padding: 3rem 0;
+      }
+
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+
+      ul li {
+        padding: 1rem;
+      }
+    }
+
+    /* Scroll animations */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Tech accent elements */
+    .tech-accent {
+      position: relative;
+    }
+
+    .tech-accent::before {
+      content: '◆';
+      color: #007acc;
+      margin-right: 0.5rem;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="background-grid"></div>
+  <div class="data-visualization" id="dataViz"></div>
+
+  <header id="header">
+    <div class="container">
+      <div class="header-content">
+        <h1>Synthesist.pro</h1>
+        <p>CI/CD expertise — Building automated pipelines that transform code into deployed solutions with zero-friction delivery.</p>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="about">
+      <div class="container">
+        <h2>Who I Am</h2>
+        <div class="section-content fade-in">
+          <p>A polymathic founder, systems architect, and technical strategist with 30+ years of building coherent solutions from complex challenges. I synthesize insights across domains — from distributed systems to market dynamics — creating technology that doesn't just work, but transforms how we think about problems themselves.</p>
+          <p>My approach transcends traditional silos. Where others see disconnected technologies, I see emergent patterns. Where markets fragment, I architect unity.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="capabilities">
+      <div class="container">
+        <h2>CI/CD & DevOps Excellence</h2>
+        <ul>
+          <li class="fade-in tech-accent">
+            <strong>Design end-to-end CI/CD pipelines</strong> that automate build, test, and deployment workflows across multi-cloud environments
+          </li>
+          <li class="fade-in tech-accent">
+            <strong>Implement GitOps and Infrastructure as Code</strong> using Terraform, Ansible, and Kubernetes for consistent, reproducible deployments
+          </li>
+          <li class="fade-in tech-accent">
+            <strong>Orchestrate containerized workloads</strong> with Docker and Kubernetes, ensuring scalability and reliability at enterprise scale
+          </li>
+          <li class="fade-in tech-accent">
+            <strong>Integrate quality gates and security scanning</strong> into pipelines with automated testing, SAST/DAST, and dependency vulnerability checks
+          </li>
+          <li class="fade-in tech-accent">
+            <strong>Enable progressive delivery strategies</strong> including blue-green deployments, canary releases, and feature flags for risk-free rollouts
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="projects">
+      <div class="container">
+        <h2>Current Projects</h2>
+        <div class="projects-grid" id="projectsGrid">
+          <!-- Projects will be loaded dynamically from projects.json -->
+        </div>
+      </div>
+    </section>
+
+    <section id="hosting">
+      <div class="container">
+        <h2>Hosting Solutions</h2>
+        <div class="section-content fade-in">
+          <p>Choosing the right hosting platform is critical for modern applications. Here are top platforms that excel in CI/CD integration:</p>
+        </div>
+        <ul>
+          <li class="fade-in tech-accent">
+            <strong>Microsoft Azure</strong> — Enterprise-grade cloud with Azure DevOps, native GitHub Actions integration, and comprehensive compliance certifications. Highly competitive pricing with hybrid cloud options.
+          </li>
+          <li class="fade-in tech-accent">
+            <strong>AWS (Amazon Web Services)</strong> — Market leader with CodePipeline, CodeBuild, and deep ecosystem integration. Best for complex, scalable architectures.
+          </li>
+          <li class="fade-in tech-accent">
+            <strong>Google Cloud Platform</strong> — Strong Kubernetes support with GKE, integrated CI/CD with Cloud Build, and excellent ML/AI capabilities.
+          </li>
+          <li class="fade-in tech-accent">
+            <strong>Vercel</strong> — Frontend-first platform with instant deployments, automatic preview environments, and seamless Next.js integration.
+          </li>
+          <li class="fade-in tech-accent">
+            <strong>Netlify</strong> — Git-based deployments with built-in CI/CD, instant rollbacks, and excellent static site hosting.
+          </li>
+          <li class="fade-in tech-accent">
+            <strong>DigitalOcean</strong> — Developer-friendly with App Platform for automated deployments, competitive pricing for startups.
+          </li>
+        </ul>
+        <div class="philosophy-section fade-in">
+          <p class="philosophy-text">"Azure stands out with its enterprise integration, hybrid cloud capabilities, and competitive pricing — making it an excellent choice for organizations already in the Microsoft ecosystem."</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="philosophy">
+      <div class="container">
+        <h2>DevOps Philosophy</h2>
+        <div class="section-content fade-in">
+          <p>Modern software delivery isn't about manual deployments — it's about creating automated, reliable pipelines that turn ideas into production reality. Every commit should trigger a journey through automated quality gates, security checks, and progressive rollouts.</p>
+          <p>My approach to CI/CD emphasizes automation, observability, and developer experience — ensuring teams can ship confidently and frequently.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="container">
+        <div class="contact-section fade-in">
+          <h2>Get in Touch</h2>
+          <p>Ready to transform your deployment pipeline? Whether you're modernizing legacy systems, implementing GitOps, or building cloud-native architectures, let's discuss how proper CI/CD can accelerate your delivery.</p>
+          <a href="mailto:contact@synthesist.pro" class="contact-cta highlight">Reach out and let's build the future</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Create floating data visualization
+    function createDataVisualization() {
+      const container = document.getElementById('dataViz');
+      const pointCount = 30;
+
+      for (let i = 0; i < pointCount; i++) {
+        const point = document.createElement('div');
+        point.className = 'data-point';
+        point.style.left = Math.random() * 100 + '%';
+        point.style.animationDelay = Math.random() * 15 + 's';
+        point.style.animationDuration = (Math.random() * 5 + 10) + 's';
+        container.appendChild(point);
+      }
+    }
+
+    // Dynamic header shrinking with proper content adjustment
+    function setupDynamicHeader() {
+      const header = document.getElementById('header');
+      const main = document.getElementById('main');
+      
+      window.addEventListener('scroll', () => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        if (scrollTop > 100) {
+          header.classList.add('shrunk');
+          main.classList.add('header-shrunk');
+        } else {
+          header.classList.remove('shrunk');
+          main.classList.remove('header-shrunk');
+        }
+      });
+    }
+
+    // Intersection Observer for scroll animations
+    function setupScrollAnimations() {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+            }
+          });
+        },
+        { 
+          threshold: 0.1,
+          rootMargin: '0px 0px -50px 0px'
+        }
+      );
+
+      document.querySelectorAll('.fade-in').forEach(el => {
+        observer.observe(el);
+      });
+    }
+
+    // Smooth scrolling for anchor links
+    function setupSmoothScrolling() {
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute('href'));
+          if (target) {
+            target.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }
+        });
+      });
+    }
+
+    // Load projects from JSON
+    async function loadProjects() {
+      try {
+        const response = await fetch('projects.json');
+        const projects = await response.json();
+        
+        const projectsGrid = document.getElementById('projectsGrid');
+        projectsGrid.innerHTML = projects.map(project => `
+          <div class="project-card fade-in">
+            <div class="project-name">${project.name}</div>
+            <p class="project-description">${project.description}</p>
+          </div>
+        `).join('');
+        
+        // Re-observe new elements for animations
+        document.querySelectorAll('#projectsGrid .fade-in').forEach(el => {
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add('visible');
+                }
+              });
+            },
+            { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+          );
+          observer.observe(el);
+        });
+      } catch (error) {
+        console.error('Error loading projects:', error);
+        // Fallback content if JSON fails to load
+        document.getElementById('projectsGrid').innerHTML = '<p>Projects loading...</p>';
+      }
+    }
+
+    // Initialize everything
+    document.addEventListener('DOMContentLoaded', () => {
+      createDataVisualization();
+      setupScrollAnimations();
+      setupSmoothScrolling();
+      setupDynamicHeader();
+      loadProjects();
+    });
+  </script>
+</body>
+</html>

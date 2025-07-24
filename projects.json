@@ -1,0 +1,22 @@
+[
+  {
+    "name": "MarketAlly",
+    "description": "AI-powered financial insight and strategy suite that transforms market complexity into actionable intelligence for institutional and individual decision-makers."
+  },
+  {
+    "name": "NoPWD",
+    "description": "The end of passwords — biometric-first identity architecture that makes authentication invisible, instant, and mathematically unbreachable."
+  },
+  {
+    "name": "Vybd",
+    "description": "Emotion-driven dating platform that uses psychological profiling and behavioral analysis to facilitate authentic human connections beyond surface-level matching."
+  },
+  {
+    "name": "RefactorIQ",
+    "description": "C# code intelligence platform that understands not just syntax, but architectural intent — transforming legacy systems into future-ready platforms."
+  },
+  {
+    "name": "InboxRevu",
+    "description": "AI inbox prioritization that learns your decision patterns and transforms email from information overload into focused, actionable workflow."
+  }
+]
